@@ -1,0 +1,1 @@
+# kanarownik-solvro
