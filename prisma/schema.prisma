@@ -1,0 +1,68 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  PARTICIPANT
+  REVIEWER
+}
+
+enum PullRequestStatus {
+  OPEN
+  CLOSED
+  MERGED
+}
+
+model Task {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  PullRequest PullRequest[]
+}
+
+model User {
+  githubId           Int      @id
+  assignedReviewerId Int?
+  assignedReviewer   User?    @relation("ParticipantReviewer", fields: [assignedReviewerId], references: [githubId])
+  username           String   @unique
+  name               String
+  lastName           String
+  isActive           Boolean  @default(true)
+  role               UserRole
+
+  User User[] @relation("ParticipantReviewer")
+
+  PullRequestAssignee PullRequest[] @relation("PullRequestAssignee")
+  PullRequestCreator  PullRequest[] @relation("PullRequestCreator")
+  PullRequestReviewer PullRequest[] @relation("PullRequestReviewers")
+}
+
+model PullRequest {
+  id              Int               @id
+  taskId          Int
+  assigneeId      Int?
+  createdById     Int
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  githubCreatedAt DateTime
+  githubUpdatedAt DateTime
+  status          PullRequestStatus
+  reviewers       User[]            @relation("PullRequestReviewers")
+  assignee        User?             @relation("PullRequestAssignee", fields: [assigneeId], references: [githubId])
+  createdBy       User              @relation("PullRequestCreator", fields: [createdById], references: [githubId])
+  task            Task              @relation(fields: [taskId], references: [id])
+}
