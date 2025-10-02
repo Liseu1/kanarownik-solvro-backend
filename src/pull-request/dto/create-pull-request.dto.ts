@@ -1,11 +1,13 @@
+import type { PullRequestStatus } from "@prisma/client";
+
 export class CreatePullRequestDto {
   id: number;
   taskId: number;
-  createdBy: number; // github id
-  status: string;
-  assignee?: number; // github id
+  assigneeId?: number; // github id
+  createdById: number; // github id
   reviewers?: number[]; // github ids
-  createdAt: Date;
-  updatedAt?: Date;
-  mergedAt?: Date;
+  githubCreatedAt: Date;
+  githubUpdatedAt?: Date;
+  githubMergedAt?: Date;
+  status: PullRequestStatus;
 }

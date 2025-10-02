@@ -25,11 +25,12 @@ enum PullRequestStatus {
 }
 
 model Task {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id
   title       String
   description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  dueDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   PullRequest PullRequest[]
 }
@@ -60,6 +61,7 @@ model PullRequest {
   updatedAt       DateTime          @updatedAt
   githubCreatedAt DateTime
   githubUpdatedAt DateTime
+  githubMergedAt  DateTime?
   status          PullRequestStatus
   reviewers       User[]            @relation("PullRequestReviewers")
   assignee        User?             @relation("PullRequestAssignee", fields: [assigneeId], references: [githubId])

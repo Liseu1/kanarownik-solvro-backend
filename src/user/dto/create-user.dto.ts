@@ -1,9 +1,11 @@
+import type { UserRole } from "@prisma/client";
+
 export class CreateUserDto {
   githubId: number;
+  assignedReviewerId?: number;
   username: string;
   name: string;
   lastName: string;
-  role: string; // participant/reviewer
-  assignedReviewer: number;
-  isActive: boolean;
+  isActive?: boolean;
+  role: UserRole;
 }
