@@ -7,7 +7,7 @@ CREATE TYPE "public"."PullRequestStatus" AS ENUM ('OPEN', 'CLOSED', 'MERGED');
 -- CreateTable
 CREATE TABLE "public"."Task" (
     "id" SERIAL NOT NULL,
-    "title" TEXT,
+    "title" TEXT NOT NULL,
     "description" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -36,7 +36,9 @@ CREATE TABLE "public"."PullRequest" (
     "createdById" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "status" "public"."PullRequestStatus" NOT NULL DEFAULT 'OPEN',
+    "githubCreatedAt" TIMESTAMP(3) NOT NULL,
+    "githubUpdatedAt" TIMESTAMP(3) NOT NULL,
+    "status" "public"."PullRequestStatus" NOT NULL,
 
     CONSTRAINT "PullRequest_pkey" PRIMARY KEY ("id")
 );
