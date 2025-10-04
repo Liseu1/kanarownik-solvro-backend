@@ -8,6 +8,6 @@ export class GithubController {
 
   @Get("prs")
   async getAllPRs() {
-    return this.PRfetcher.savePRs(await this.PRfetcher.getAllPRs());
+    return this.PRfetcher.getAllPRs();
   }
 }

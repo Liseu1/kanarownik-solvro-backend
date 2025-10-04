@@ -3,12 +3,13 @@ import { CreatePullRequestDto } from "src/pull-request/dto/create-pull-request.d
 import { UpdatePullRequestDto } from "src/pull-request/dto/update-pull-request.dto";
 
 import { Injectable } from "@nestjs/common";
+import { Cron, CronExpression } from "@nestjs/schedule";
 
 export interface GithubPullRequest {
   id: number;
   title: string;
   state: PullRequestStatus;
-  merged_at: string;
+  merged_at: string | null;
   updated_at: string;
   created_at: string;
   user: {
@@ -21,6 +22,7 @@ export interface GithubPullRequest {
 }
 @Injectable()
 export class PRFetcherService {
+  @Cron(CronExpression.EVERY_10_MINUTES)
   async getAllPRs() {
     const github_token = process.env.GITHUB_PERSONAL_TOKEN;
     const owner = "Liseu1";
@@ -60,10 +62,6 @@ export class PRFetcherService {
       page++;
     }
 
-    return allPRs;
-  }
-
-  async savePRs(PRs: GithubPullRequest[]) {
     const createDtos: CreatePullRequestDto[] = [];
     const updateDtos: UpdatePullRequestDto[] = [];
     const prisma = new PrismaClient();
@@ -77,7 +75,7 @@ export class PRFetcherService {
         id: true,
       },
     });
-    for (const pr of PRs) {
+    for (const pr of allPRs) {
       if (latest === null || new Date(pr.updated_at) > latest.updatedAt) {
         const taskId = Number(pr.title.split(" ")[1]);
         if (!tasks.some((t) => t.id === taskId)) {
@@ -87,7 +85,7 @@ export class PRFetcherService {
           );
           continue;
         }
-        if (pr.merged_at) {
+        if (pr.merged_at !== null) {
           pr.state = PullRequestStatus.MERGED;
         }
 
@@ -107,7 +105,8 @@ export class PRFetcherService {
             createdById: pr.user.id,
             githubCreatedAt: new Date(pr.created_at),
             githubUpdatedAt: new Date(pr.updated_at),
-            githubMergedAt: new Date(pr.merged_at),
+            githubMergedAt:
+              pr.merged_at === null ? undefined : new Date(pr.merged_at),
             assigneeId: pr.assignees[0]?.id,
             status: this.mapGitHubStateToPrisma(pr.state),
             reviewerId: pr.requested_reviewers[0]?.id,
@@ -123,14 +122,14 @@ export class PRFetcherService {
             reviewerId: pr.requested_reviewers[0]?.id,
             githubCreatedAt: new Date(pr.created_at),
             githubUpdatedAt: new Date(pr.updated_at),
-            githubMergedAt: new Date(pr.merged_at),
+            githubMergedAt:
+              pr.merged_at === null ? undefined : new Date(pr.merged_at),
             status: this.mapGitHubStateToPrisma(pr.state),
           };
           updateDtos.push(dto);
         }
       }
     }
-
     await prisma.pullRequest.createMany({
       data: createDtos,
     });

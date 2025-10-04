@@ -1,4 +1,4 @@
-import { PrismaClient, PullRequestStatus, UserRole } from "@prisma/client";
+import { PrismaClient, UserRole } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -33,18 +33,18 @@ async function main() {
     },
   });
 
-  await prisma.pullRequest.create({
-    data: {
-      id: 15,
-      taskId: 1,
-      createdById: 93_681_952,
-      assigneeId: 93_681_952,
-      reviewerId: 72_706_877,
-      githubCreatedAt: new Date(),
-      githubUpdatedAt: new Date(),
-      status: PullRequestStatus.OPEN,
-    },
-  });
+  // await prisma.pullRequest.create({
+  //   data: {
+  //     id: 15,
+  //     taskId: 1,
+  //     createdById: 93_681_952,
+  //     assigneeId: 93_681_952,
+  //     reviewerId: 72_706_877,
+  //     githubCreatedAt: new Date(),
+  //     githubUpdatedAt: new Date(),
+  //     status: PullRequestStatus.OPEN,
+  //   },
+  // });
 }
 
 main()
