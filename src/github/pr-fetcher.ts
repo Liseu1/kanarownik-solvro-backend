@@ -1,32 +1,23 @@
-import { PrismaClient, PullRequestStatus } from "@prisma/client";
+import { PrismaClient, PullRequestStatus, UserRole } from "@prisma/client";
 import { CreatePullRequestDto } from "src/pull-request/dto/create-pull-request.dto";
 import { UpdatePullRequestDto } from "src/pull-request/dto/update-pull-request.dto";
 
 import { Injectable } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 
-export interface GithubPullRequest {
-  id: number;
-  title: string;
-  state: PullRequestStatus;
-  merged_at: string | null;
-  updated_at: string;
-  created_at: string;
-  user: {
-    id: number;
-  };
-  assignees: {
-    id: number | undefined;
-  }[];
-  requested_reviewers: { id: number | undefined }[];
-}
+import { GithubPullRequest } from "./github-pull-request.interface";
+
 @Injectable()
 export class PRFetcherService {
   @Cron(CronExpression.EVERY_10_MINUTES)
   async getAllPRs() {
     const github_token = process.env.GITHUB_PERSONAL_TOKEN;
-    const owner = "Liseu1";
-    const repo = "kanarownik-solvro-test";
+    const owner = process.env.GITHUB_REPO_OWNER;
+    const repo = process.env.GITHUB_REPO_NAME;
+    if (owner === undefined || repo === undefined) {
+      throw new Error("define reposity in .env");
+    }
+    console.warn(`https://api.github.com/repos/${owner}/${repo}/pulls`);
     let page = 1;
     const perPage = "100";
     let allPRs: GithubPullRequest[] = [];
@@ -75,6 +66,23 @@ export class PRFetcherService {
         id: true,
       },
     });
+    const assignees = await prisma.user.findMany({
+      select: {
+        githubId: true,
+      },
+      where: {
+        role: UserRole.PARTICIPANT,
+      },
+    });
+
+    const reviewers = await prisma.user.findMany({
+      select: {
+        githubId: true,
+      },
+      where: {
+        role: UserRole.REVIEWER,
+      },
+    });
     for (const pr of allPRs) {
       if (latest === null || new Date(pr.updated_at) > latest.updatedAt) {
         const taskId = Number(pr.title.split(" ")[1]);
@@ -85,16 +93,33 @@ export class PRFetcherService {
           );
           continue;
         }
-        if (pr.merged_at !== null) {
-          pr.state = PullRequestStatus.MERGED;
-        }
 
+        const assigneeId = pr.assignees[0]?.id;
+        if (
+          assigneeId != null &&
+          !assignees.some((a) => Number(a.githubId) === assigneeId)
+        ) {
+          console.warn(`${String(pr.id)} has an unregistered assignee`);
+          continue;
+        }
         if (pr.assignees.length === 0) {
           console.warn(`${String(pr.id)} is missing an assignee`);
         }
 
+        const reviewerId = pr.requested_reviewers[0]?.id;
+        if (
+          reviewerId != null &&
+          !reviewers.some((r) => Number(r.githubId) === reviewerId)
+        ) {
+          console.warn(`${String(pr.id)} has a unregistered reviewer`);
+          continue;
+        }
         if (pr.requested_reviewers.length === 0) {
           console.warn(`${String(pr.id)} is missing a reviewer`);
+        }
+
+        if (pr.merged_at !== null) {
+          pr.state = PullRequestStatus.MERGED;
         }
 
         if (latest === null || new Date(pr.created_at) > latest.updatedAt) {
@@ -107,18 +132,17 @@ export class PRFetcherService {
             githubUpdatedAt: new Date(pr.updated_at),
             githubMergedAt:
               pr.merged_at === null ? undefined : new Date(pr.merged_at),
-            assigneeId: pr.assignees[0]?.id,
+            assigneeId,
             status: this.mapGitHubStateToPrisma(pr.state),
             reviewerId: pr.requested_reviewers[0]?.id,
           };
           createDtos.push(dto);
         } else if (new Date(pr.updated_at) > latest.updatedAt) {
           // if pr is updated after last scan
-          console.warn(pr.merged_at);
           const dto: UpdatePullRequestDto = {
             id: pr.id,
             taskId,
-            assigneeId: pr.assignees[0]?.id,
+            assigneeId,
             reviewerId: pr.requested_reviewers[0]?.id,
             githubCreatedAt: new Date(pr.created_at),
             githubUpdatedAt: new Date(pr.updated_at),
