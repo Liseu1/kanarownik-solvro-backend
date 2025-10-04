@@ -5,9 +5,9 @@ export class CreatePullRequestDto {
   taskId: number;
   assigneeId?: number; // github id
   createdById: number; // github id
-  reviewers?: number[]; // github ids
+  reviewerId?: number; // github id
   githubCreatedAt: Date;
-  githubUpdatedAt?: Date;
+  githubUpdatedAt: Date;
   githubMergedAt?: Date;
   status: PullRequestStatus;
 }

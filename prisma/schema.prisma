@@ -36,8 +36,8 @@ model Task {
 }
 
 model User {
-  githubId           Int      @id
-  assignedReviewerId Int?
+  githubId           BigInt      @id
+  assignedReviewerId BigInt?
   assignedReviewer   User?    @relation("ParticipantReviewer", fields: [assignedReviewerId], references: [githubId])
   username           String   @unique
   name               String
@@ -49,21 +49,22 @@ model User {
 
   PullRequestAssignee PullRequest[] @relation("PullRequestAssignee")
   PullRequestCreator  PullRequest[] @relation("PullRequestCreator")
-  PullRequestReviewer PullRequest[] @relation("PullRequestReviewers")
+  PullRequestReviewer PullRequest[] @relation("PullRequestReviewer")
 }
 
 model PullRequest {
-  id              Int               @id
+  id              BigInt               @id
   taskId          Int
-  assigneeId      Int?
-  createdById     Int
+  assigneeId      BigInt?
+  reviewerId      BigInt?
+  createdById     BigInt
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
   githubCreatedAt DateTime
   githubUpdatedAt DateTime
   githubMergedAt  DateTime?
   status          PullRequestStatus
-  reviewers       User[]            @relation("PullRequestReviewers")
+  reviewer        User?             @relation("PullRequestReviewer", fields: [reviewerId], references: [githubId]) 
   assignee        User?             @relation("PullRequestAssignee", fields: [assigneeId], references: [githubId])
   createdBy       User              @relation("PullRequestCreator", fields: [createdById], references: [githubId])
   task            Task              @relation(fields: [taskId], references: [id])
