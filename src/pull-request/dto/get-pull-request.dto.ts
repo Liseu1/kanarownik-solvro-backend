@@ -7,7 +7,7 @@ export class GetPullRequestDto {
   task: GetTaskDto;
   assignee: GetUserDto;
   createdBy: GetUserDto;
-  reviewers: GetUserDto[];
+  reviewer: GetUserDto;
   githubCreatedAt: Date;
   githubUpdatedAt: Date;
   githubMergedAt: Date;

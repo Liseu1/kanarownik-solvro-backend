@@ -7,7 +7,7 @@ import { CreatePullRequestDto } from "./create-pull-request.dto";
 export class UpdatePullRequestDto extends PartialType(CreatePullRequestDto) {
   taskId: number;
   assigneeId?: number; // github id
-  reviewers?: number[]; // github ids
+  reviewerId?: number; // github id
   githubUpdatedAt?: Date;
   githubMergedAt?: Date;
   status?: PullRequestStatus;
