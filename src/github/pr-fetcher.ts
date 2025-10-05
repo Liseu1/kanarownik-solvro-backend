@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-type-conversion */
-// it is necessary, as lint is wrong, and we are actually converting a number to a BIGINT.
+/* eslint-disable eqeqeq */
+// it is necessary, because we are comparing a number to a BIGINT, and built-in conversion is somehow wrong (???)
 import { PrismaClient, PullRequestStatus, UserRole } from "@prisma/client";
 import { CreatePullRequestDto } from "src/pull-request/dto/create-pull-request.dto";
 import { UpdatePullRequestDto } from "src/pull-request/dto/update-pull-request.dto";
@@ -98,11 +98,12 @@ export class PRFetcherService {
         const assigneeId = pr.assignees[0]?.id;
         if (
           assigneeId != null &&
-          !assignees.some((a) => a.githubId === BigInt(assigneeId))
+          !assignees.some((a) => a.githubId == assigneeId)
         ) {
           console.warn(`${String(pr.id)} has an unregistered assignee`);
           continue;
         }
+
         if (pr.assignees.length === 0) {
           console.warn(`${String(pr.id)} is missing an assignee`);
         }
@@ -110,7 +111,7 @@ export class PRFetcherService {
         const reviewerId = pr.requested_reviewers[0]?.id;
         if (
           reviewerId != null &&
-          !reviewers.some((r) => r.githubId === BigInt(reviewerId))
+          !reviewers.some((r) => r.githubId == reviewerId)
         ) {
           console.warn(`${String(pr.id)} has a unregistered reviewer`);
           continue;
