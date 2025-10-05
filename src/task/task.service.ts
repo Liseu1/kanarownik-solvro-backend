@@ -13,7 +13,7 @@ import { UpdateTaskDto } from "./dto/update-task.dto";
 
 @Injectable()
 export class TaskService {
-  constructor(private database: DatabaseService) {}
+  constructor(protected database: DatabaseService) {}
   async create(createTaskDto: CreateTaskDto) {
     try {
       const user = await this.database.task.create({

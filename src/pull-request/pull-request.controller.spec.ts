@@ -1,6 +1,7 @@
 import type { TestingModule } from "@nestjs/testing";
 import { Test } from "@nestjs/testing";
 
+import { PullRequestInternalService } from "./pull-request-internal.service";
 import { PullRequestController } from "./pull-request.controller";
 import { PullRequestService } from "./pull-request.service";
 
@@ -10,7 +11,7 @@ describe("PullRequestController", () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PullRequestController],
-      providers: [PullRequestService],
+      providers: [PullRequestService, PullRequestInternalService],
     }).compile();
 
     controller = module.get<PullRequestController>(PullRequestController);

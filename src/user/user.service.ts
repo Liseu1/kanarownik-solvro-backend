@@ -15,7 +15,7 @@ import { UpdateUserDto } from "./dto/update-user.dto";
 
 @Injectable()
 export class UserService {
-  constructor(private database: DatabaseService) {}
+  constructor(protected database: DatabaseService) {}
 
   async create(createUserDto: CreateUserDto) {
     try {
