@@ -1,9 +1,9 @@
 import type { UserRole } from "@prisma/client";
 
 export class GetUserDto {
-  githubId: number;
-  assignedReviewerId: number;
-  assignedReviewerUsername: string;
+  githubId: bigint;
+  assignedReviewerId: bigint | null;
+  assignedReviewerUsername: string | null;
   username: string;
   name: string;
   lastName: string;
