@@ -15,7 +15,7 @@ export class PRFetcherService {
     const owner = process.env.GITHUB_REPO_OWNER;
     const repo = process.env.GITHUB_REPO_NAME;
     if (owner === undefined || repo === undefined) {
-      throw new Error("define reposity in .env");
+      throw new Error("define repository in .env");
     }
     console.warn(`https://api.github.com/repos/${owner}/${repo}/pulls`);
     let page = 1;
@@ -97,7 +97,7 @@ export class PRFetcherService {
         const assigneeId = pr.assignees[0]?.id;
         if (
           assigneeId != null &&
-          !assignees.some((a) => Number(a.githubId) === assigneeId)
+          !assignees.some((a) => a.githubId === assigneeId)
         ) {
           console.warn(`${String(pr.id)} has an unregistered assignee`);
           continue;
@@ -109,7 +109,7 @@ export class PRFetcherService {
         const reviewerId = pr.requested_reviewers[0]?.id;
         if (
           reviewerId != null &&
-          !reviewers.some((r) => Number(r.githubId) === reviewerId)
+          !reviewers.some((r) => r.githubId === reviewerId)
         ) {
           console.warn(`${String(pr.id)} has a unregistered reviewer`);
           continue;
@@ -131,7 +131,7 @@ export class PRFetcherService {
             githubCreatedAt: new Date(pr.created_at),
             githubUpdatedAt: new Date(pr.updated_at),
             githubMergedAt:
-              pr.merged_at === null ? undefined : new Date(pr.merged_at),
+              pr.merged_at === null ? null : new Date(pr.merged_at),
             assigneeId,
             status: this.mapGitHubStateToPrisma(pr.state),
             reviewerId: pr.requested_reviewers[0]?.id,
