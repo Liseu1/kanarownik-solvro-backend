@@ -1,0 +1,71 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  PARTICIPANT
+  REVIEWER
+}
+
+enum PullRequestStatus {
+  OPEN
+  CLOSED
+  MERGED
+}
+
+model Task {
+  id          Int       @id
+  title       String
+  description String?
+  dueDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  PullRequest PullRequest[]
+}
+
+model User {
+  githubId           BigInt      @id
+  assignedReviewerId BigInt?
+  assignedReviewer   User?    @relation("ParticipantReviewer", fields: [assignedReviewerId], references: [githubId])
+  username           String   @unique
+  name               String
+  lastName           String
+  isActive           Boolean  @default(true)
+  role               UserRole
+
+  User User[] @relation("ParticipantReviewer")
+
+  PullRequestAssignee PullRequest[] @relation("PullRequestAssignee")
+  PullRequestCreator  PullRequest[] @relation("PullRequestCreator")
+  PullRequestReviewer PullRequest[] @relation("PullRequestReviewer")
+}
+
+model PullRequest {
+  id              BigInt               @id
+  taskId          Int
+  assigneeId      BigInt?
+  reviewerId      BigInt?
+  createdById     BigInt
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  githubCreatedAt DateTime
+  githubUpdatedAt DateTime
+  githubMergedAt  DateTime?
+  status          PullRequestStatus
+  reviewer        User?             @relation("PullRequestReviewer", fields: [reviewerId], references: [githubId]) 
+  assignee        User?             @relation("PullRequestAssignee", fields: [assigneeId], references: [githubId])
+  createdBy       User              @relation("PullRequestCreator", fields: [createdById], references: [githubId])
+  task            Task              @relation(fields: [taskId], references: [id])
+}
