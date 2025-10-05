@@ -1,15 +1,15 @@
 /* eslint-disable eqeqeq */
 // it is necessary, because we are comparing a number to a BIGINT, and built-in conversion is somehow wrong (???)
 import { PullRequestStatus } from "@prisma/client";
-import { CreatePullRequestDto } from "src/pull-request/dto/create-pull-request.dto";
-import { UpdatePullRequestDto } from "src/pull-request/dto/update-pull-request.dto";
-import { PullRequestInternalService } from "src/pull-request/pull-request-internal.service";
-import { TaskInternalService } from "src/task/task-internal.service";
-import { UserInternalService } from "src/user/user-internal.service";
 
 import { Injectable } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 
+import { CreatePullRequestDto } from "../pull-request/dto/create-pull-request.dto";
+import { UpdatePullRequestDto } from "../pull-request/dto/update-pull-request.dto";
+import { PullRequestInternalService } from "../pull-request/pull-request-internal.service";
+import { TaskInternalService } from "../task/task-internal.service";
+import { UserInternalService } from "../user/user-internal.service";
 import { GithubPullRequest } from "./github-pull-request.interface";
 
 @Injectable()
