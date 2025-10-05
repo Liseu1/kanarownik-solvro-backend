@@ -1,6 +1,7 @@
 import type { TestingModule } from "@nestjs/testing";
 import { Test } from "@nestjs/testing";
 
+import { DatabaseModule } from "../database/database.module";
 import { PullRequestInternalService } from "./pull-request-internal.service";
 
 describe("PullRequestService", () => {
@@ -8,6 +9,7 @@ describe("PullRequestService", () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [DatabaseModule],
       providers: [PullRequestInternalService],
     }).compile();
 
