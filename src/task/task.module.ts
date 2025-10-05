@@ -1,7 +1,6 @@
-import { DatabaseModule } from "src/database/database.module";
-
 import { Module } from "@nestjs/common";
 
+import { DatabaseModule } from "../database/database.module";
 import { TaskInternalService } from "./task-internal.service";
 import { TaskController } from "./task.controller";
 import { TaskService } from "./task.service";
