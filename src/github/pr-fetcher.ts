@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-type-conversion */
+// it is necessary, as lint is wrong, and we are actually converting a number to a BIGINT.
 import { PrismaClient, PullRequestStatus, UserRole } from "@prisma/client";
 import { CreatePullRequestDto } from "src/pull-request/dto/create-pull-request.dto";
 import { UpdatePullRequestDto } from "src/pull-request/dto/update-pull-request.dto";
@@ -9,7 +11,7 @@ import { GithubPullRequest } from "./github-pull-request.interface";
 
 @Injectable()
 export class PRFetcherService {
-  @Cron(CronExpression.EVERY_10_MINUTES)
+  @Cron(CronExpression.EVERY_MINUTE)
   async getAllPRs() {
     const github_token = process.env.GITHUB_PERSONAL_TOKEN;
     const owner = process.env.GITHUB_REPO_OWNER;
@@ -17,7 +19,6 @@ export class PRFetcherService {
     if (owner === undefined || repo === undefined) {
       throw new Error("define repository in .env");
     }
-    console.warn(`https://api.github.com/repos/${owner}/${repo}/pulls`);
     let page = 1;
     const perPage = "100";
     let allPRs: GithubPullRequest[] = [];
@@ -97,7 +98,7 @@ export class PRFetcherService {
         const assigneeId = pr.assignees[0]?.id;
         if (
           assigneeId != null &&
-          !assignees.some((a) => a.githubId === assigneeId)
+          !assignees.some((a) => a.githubId === BigInt(assigneeId))
         ) {
           console.warn(`${String(pr.id)} has an unregistered assignee`);
           continue;
@@ -109,7 +110,7 @@ export class PRFetcherService {
         const reviewerId = pr.requested_reviewers[0]?.id;
         if (
           reviewerId != null &&
-          !reviewers.some((r) => r.githubId === reviewerId)
+          !reviewers.some((r) => r.githubId === BigInt(reviewerId))
         ) {
           console.warn(`${String(pr.id)} has a unregistered reviewer`);
           continue;
