@@ -1,6 +1,7 @@
 import type { TestingModule } from "@nestjs/testing";
 import { Test } from "@nestjs/testing";
 
+import { DatabaseModule } from "../../src/database/database.module";
 import { UserController } from "./user.controller";
 import { UserService } from "./user.service";
 
@@ -9,6 +10,7 @@ describe("UserController", () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [DatabaseModule],
       controllers: [UserController],
       providers: [UserService],
     }).compile();
