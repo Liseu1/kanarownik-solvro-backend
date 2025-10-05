@@ -1,8 +1,11 @@
 /* eslint-disable eqeqeq */
 // it is necessary, because we are comparing a number to a BIGINT, and built-in conversion is somehow wrong (???)
-import { PrismaClient, PullRequestStatus, UserRole } from "@prisma/client";
+import { PullRequestStatus } from "@prisma/client";
 import { CreatePullRequestDto } from "src/pull-request/dto/create-pull-request.dto";
 import { UpdatePullRequestDto } from "src/pull-request/dto/update-pull-request.dto";
+import { PullRequestInternalService } from "src/pull-request/pull-request-internal.service";
+import { TaskInternalService } from "src/task/task-internal.service";
+import { UserInternalService } from "src/user/user-internal.service";
 
 import { Injectable } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
@@ -11,6 +14,11 @@ import { GithubPullRequest } from "./github-pull-request.interface";
 
 @Injectable()
 export class PRFetcherService {
+  constructor(
+    private readonly pullRequestService: PullRequestInternalService,
+    private readonly taskService: TaskInternalService,
+    private readonly userService: UserInternalService,
+  ) {}
   @Cron(CronExpression.EVERY_MINUTE)
   async getAllPRs() {
     const github_token = process.env.GITHUB_PERSONAL_TOKEN;
@@ -56,34 +64,11 @@ export class PRFetcherService {
 
     const createDtos: CreatePullRequestDto[] = [];
     const updateDtos: UpdatePullRequestDto[] = [];
-    const prisma = new PrismaClient();
-    const latest = await prisma.pullRequest.findFirst({
-      orderBy: {
-        updatedAt: "desc",
-      },
-    });
-    const tasks = await prisma.task.findMany({
-      select: {
-        id: true,
-      },
-    });
-    const assignees = await prisma.user.findMany({
-      select: {
-        githubId: true,
-      },
-      where: {
-        role: UserRole.PARTICIPANT,
-      },
-    });
+    const latest = await this.pullRequestService.findLatest();
+    const tasks = await this.taskService.findAllIds();
+    const assignees = await this.userService.findAllWithRole("PARTICIPANT");
+    const reviewers = await this.userService.findAllWithRole("REVIEWER");
 
-    const reviewers = await prisma.user.findMany({
-      select: {
-        githubId: true,
-      },
-      where: {
-        role: UserRole.REVIEWER,
-      },
-    });
     for (const pr of allPRs) {
       if (latest === null || new Date(pr.updated_at) > latest.updatedAt) {
         const taskId = Number(pr.title.split(" ")[1]);
@@ -156,19 +141,17 @@ export class PRFetcherService {
         }
       }
     }
-    await prisma.pullRequest.createMany({
-      data: createDtos,
-    });
+    await this.pullRequestService.createMany(createDtos);
     for (const dto of updateDtos) {
-      await prisma.pullRequest.update({
-        where: { id: dto.id },
-        data: {
-          taskId: dto.taskId,
-          assigneeId: dto.assigneeId,
-          reviewerId: dto.reviewerId,
-          githubUpdatedAt: dto.githubUpdatedAt,
-          status: dto.status,
-        },
+      if (dto.id == undefined) {
+        continue;
+      }
+      await this.pullRequestService.update(Number(dto.id), {
+        taskId: dto.taskId,
+        assigneeId: dto.assigneeId,
+        reviewerId: dto.reviewerId,
+        githubUpdatedAt: dto.githubUpdatedAt,
+        status: dto.status,
       });
     }
   }
