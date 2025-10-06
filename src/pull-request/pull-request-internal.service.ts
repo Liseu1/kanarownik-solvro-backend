@@ -44,7 +44,9 @@ export class PullRequestInternalService extends PullRequestService {
           );
         }
       }
-      throw new InternalServerErrorException("Failed to create a user.");
+      throw new InternalServerErrorException(
+        "Failed to create a pull request.",
+      );
     }
   }
 

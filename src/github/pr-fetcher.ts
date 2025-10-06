@@ -1,6 +1,6 @@
 /* eslint-disable eqeqeq */
 // it is necessary, because we are comparing a number to a BIGINT, and built-in conversion is somehow wrong (???)
-import { PullRequestStatus } from "@prisma/client";
+import { PullRequestStatus, UserRole } from "@prisma/client";
 
 import { Injectable } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
@@ -66,8 +66,10 @@ export class PRFetcherService {
     const updateDtos: UpdatePullRequestDto[] = [];
     const latest = await this.pullRequestService.findLatest();
     const tasks = await this.taskService.findAllIds();
-    const assignees = await this.userService.findAllWithRole("PARTICIPANT");
-    const reviewers = await this.userService.findAllWithRole("REVIEWER");
+    const assignees = await this.userService.findAllWithRole(
+      UserRole.PARTICIPANT,
+    );
+    const reviewers = await this.userService.findAllWithRole(UserRole.REVIEWER);
 
     for (const pr of allPRs) {
       if (latest === null || new Date(pr.updated_at) > latest.updatedAt) {
